@@ -1,0 +1,45 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: "lendingclub-default: A leakage-free, calibrated credit-default classifier benchmarked honestly out-of-time"
+abstract: >-
+  A pure, typed Python implementation of a LendingClub credit-default classifier
+  that scores a loan application's probability of default at origination. Every
+  post-funding column is removed via a frozen leakage allowlist before any feature
+  is built; the model is benchmarked out-of-time with a temporal vintage split
+  (never random K-fold) against a base-rate predictor and an L2-logistic baseline,
+  with a DeLong test (Bonferroni-corrected) on the AUC gap. The shipped <2MB
+  artifact is trained on a synthetic LC-schema panel for reproducibility; the
+  real-data ROC-AUC ~0.70 is cited as the expected literature figure, not measured.
+  The headline is ROC-AUC / PR-AUC / Brier, never accuracy, never profit.
+type: software
+version: 0.1.0
+date-released: "2026-06-16"
+license: MIT
+repository-code: "https://github.com/FatihHekim0glu/lendingclub-default"
+url: "https://fatihhekimoglu.com"
+authors:
+  - family-names: "FatihHekim0glu"
+keywords:
+  - credit-default
+  - classification
+  - calibration
+  - data-leakage
+  - temporal-validation
+  - lendingclub
+references:
+  - type: article
+    title: "Comparing the Areas under Two or More Correlated Receiver Operating Characteristic Curves: A Nonparametric Approach"
+    authors:
+      - family-names: "DeLong"
+        given-names: "Elizabeth R."
+      - family-names: "DeLong"
+        given-names: "David M."
+      - family-names: "Clarke-Pearson"
+        given-names: "Daniel L."
+    journal: "Biometrics"
+    volume: 44
+    issue: 3
+    year: 1988
+  - type: data
+    title: "LendingClub Loan Data Dictionary (LCDataDictionary)"
+    notes: "Source of the post-funding leakage column allowlist (LEAKAGE_COLS)."
