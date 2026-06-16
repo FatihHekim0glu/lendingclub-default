@@ -1,0 +1,187 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "lendingclub-default"
+version = "0.1.0"
+description = "Leakage-free, calibrated XGBoost credit-default classifier for LendingClub-schema loans — temporal vintage split, DeLong-tested AUC gap, honest AUC/PR-AUC/Brier headline (ranks risk, never predicts individuals, no profit claims)."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [{ name = "FatihHekim0glu" }]
+keywords = [
+    "credit-risk",
+    "default-prediction",
+    "lendingclub",
+    "xgboost",
+    "calibration",
+    "classification",
+    "machine-learning",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Financial and Insurance Industry",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Office/Business :: Financial",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Typing :: Typed",
+]
+dependencies = [
+    "numpy>=1.26",
+    "pandas>=2.0",
+    "scipy>=1.11",
+    "scikit-learn>=1.3",
+    "xgboost>=2.0",
+]
+
+[project.urls]
+Homepage = "https://fatihhekimoglu.com"
+Repository = "https://github.com/FatihHekim0glu/lendingclub-default"
+Changelog = "https://github.com/FatihHekim0glu/lendingclub-default/blob/main/CHANGELOG.md"
+
+[project.optional-dependencies]
+# Modelling path used by the lean API container: gradient boosting + the sklearn
+# feature pipeline over a pandas/numpy/scipy stack.
+data = [
+    "xgboost>=2.0",
+    "scikit-learn>=1.3",
+    "pandas>=2.0",
+    "numpy>=1.26",
+    "scipy>=1.11",
+]
+# Plotly figure builders (figures serialize to {data, layout} JSON).
+viz = [
+    "plotly>=5.20",
+    "kaleido>=0.2.1",
+]
+# Developer + parity-oracle + lint/type/test stack. SHAP is dev-only — it is
+# NEVER imported in the shipped container (reason codes there use logit/WOE).
+dev = [
+    "pytest>=8.0",
+    "pytest-cov>=5.0",
+    "hypothesis>=6.100",
+    "ruff>=0.5",
+    "mypy>=1.10",
+    "shap>=0.44",
+    "pandas-stubs>=2.0",
+    "typer>=0.12",
+]
+
+[project.scripts]
+lendingclub-default = "lendingclub_default.cli:app"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/lendingclub_default"]
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "src/lendingclub_default",
+    "tests",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE",
+]
+
+# --------------------------------------------------------------------------- #
+# Ruff                                                                        #
+# --------------------------------------------------------------------------- #
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = [
+    "E",    # pycodestyle errors
+    "F",    # pyflakes
+    "I",    # isort
+    "N",    # pep8-naming
+    "UP",   # pyupgrade
+    "B",    # flake8-bugbear
+    "SIM",  # flake8-simplify
+    "RUF",  # ruff-specific
+    "NPY",  # numpy-specific
+    "PD",   # pandas-vet
+]
+ignore = [
+    "E501",    # line length handled by formatter
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["N802", "N803", "N806"]  # math-style names in tests
+
+[tool.ruff.lint.pep8-naming]
+# Single-capital names (design matrix X, target y) are intentional ML convention.
+extend-ignore-names = ["X", "X_train", "X_valid", "X_test", "C"]
+
+# --------------------------------------------------------------------------- #
+# mypy (strict)                                                               #
+# --------------------------------------------------------------------------- #
+[tool.mypy]
+python_version = "3.11"
+strict = true
+warn_unused_configs = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+no_implicit_optional = true
+show_error_codes = true
+files = ["src/lendingclub_default"]
+
+# Documented pandas override: pandas-stubs is incomplete for some DataFrame
+# operations; we accept untyped pandas internals at the boundary while keeping
+# our own signatures strictly typed. (House convention: curated pandas suppression.)
+[[tool.mypy.overrides]]
+module = ["pandas.*"]
+follow_imports = "skip"
+disallow_untyped_defs = false
+
+[[tool.mypy.overrides]]
+module = [
+    "scipy.*",
+    "sklearn.*",
+    "xgboost.*",
+    "plotly.*",
+    "typer.*",
+]
+ignore_missing_imports = true
+
+# --------------------------------------------------------------------------- #
+# pytest                                                                       #
+# --------------------------------------------------------------------------- #
+[tool.pytest.ini_options]
+minversion = "8.0"
+testpaths = ["tests"]
+addopts = "-ra --strict-markers --strict-config"
+markers = [
+    "unit: fast isolated unit tests",
+    "property: Hypothesis property-based invariant tests",
+    "parity: validation against an independent reference implementation",
+    "regression: pinned-snapshot / locked-behaviour tests",
+    "integration: end-to-end pipeline tests (may touch data/disk)",
+    "slow: long-running tests",
+]
+
+# --------------------------------------------------------------------------- #
+# Coverage                                                                     #
+# --------------------------------------------------------------------------- #
+[tool.coverage.run]
+branch = true
+source = ["lendingclub_default"]
+
+[tool.coverage.report]
+fail_under = 85
+show_missing = true
+exclude_lines = [
+    "pragma: no cover",
+    "raise NotImplementedError",
+    "if TYPE_CHECKING:",
+    "@overload",
+]
