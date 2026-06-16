@@ -168,6 +168,12 @@ markers = [
     "integration: end-to-end pipeline tests (may touch data/disk)",
     "slow: long-running tests",
 ]
+filterwarnings = [
+    # The unscaled-feature determinism/parity tests intentionally exercise the
+    # logistic baseline without standardization; lbfgs may not fully converge but
+    # the assertions hold regardless. Silence only that specific, expected noise.
+    "ignore:lbfgs failed to converge:UserWarning",
+]
 
 # --------------------------------------------------------------------------- #
 # Coverage                                                                     #

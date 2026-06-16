@@ -13,15 +13,17 @@ Importing this module has no side effects.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 import numpy as np
+import pandas as pd
 
-if TYPE_CHECKING:
-    import pandas as pd
+from lendingclub_default._exceptions import ValidationError
 
 # quantcore-candidate: new code (PD calibration); parity vs sklearn
 # CalibratedClassifierCV / IsotonicRegression.
+
+_VALID_METHODS = frozenset({"isotonic", "sigmoid"})
 
 
 @dataclass(frozen=True, slots=True)
@@ -90,10 +92,30 @@ class CalibratedModel:
 
         Raises
         ------
-        NotImplementedError
-            This is a stub; the implementation is filled in by the models author.
+        ValidationError
+            If the method is unknown or its serialized params are malformed.
         """
-        raise NotImplementedError("CalibratedModel.calibrate is not yet implemented.")
+        scores = np.asarray(raw_scores, dtype=np.float64).ravel()
+
+        if self.method == "isotonic":
+            knots_x = np.asarray(self.params["knots_x"], dtype=np.float64)
+            knots_y = np.asarray(self.params["knots_y"], dtype=np.float64)
+            if knots_x.size == 0:
+                raise ValidationError("CalibratedModel.calibrate: empty isotonic knots.")
+            # Piecewise-linear interpolation between the fitted knots reproduces
+            # sklearn's IsotonicRegression (out_of_bounds="clip"): flat extension
+            # beyond the knot range keeps the map monotone non-decreasing.
+            out = np.interp(scores, knots_x, knots_y, left=knots_y[0], right=knots_y[-1])
+        elif self.method == "sigmoid":
+            slope = float(self.params["a"])
+            intercept = float(self.params["b"])
+            # Platt scaling: sigmoid(a * score + b).
+            out = 1.0 / (1.0 + np.exp(-(slope * scores + intercept)))
+        else:
+            raise ValidationError(f"CalibratedModel.calibrate: unknown method {self.method!r}.")
+
+        clipped: np.ndarray = np.clip(np.asarray(out, dtype=np.float64), 0.0, 1.0)
+        return clipped
 
     def to_dict(self) -> dict[str, Any]:
         """Return a plain, JSON-serializable ``dict`` of this calibration map."""
@@ -126,7 +148,55 @@ def fit_calibration(
     ------
     ValidationError
         If ``method`` is unknown or the inputs are misaligned.
-    NotImplementedError
-        This is a stub; the implementation is filled in by the models author.
     """
-    raise NotImplementedError("fit_calibration is not yet implemented.")
+    if method not in _VALID_METHODS:
+        raise ValidationError(
+            f"fit_calibration: unknown method {method!r}; expected one of {sorted(_VALID_METHODS)}."
+        )
+
+    scores = np.asarray(raw_scores, dtype=np.float64).ravel()
+    target = pd.Series(y).astype("float64").to_numpy()
+    if scores.size == 0:
+        raise ValidationError("fit_calibration: raw_scores must be non-empty.")
+    if scores.size != target.size:
+        raise ValidationError(
+            f"fit_calibration: raw_scores and y must align ({scores.size} != {target.size})."
+        )
+
+    if method == "isotonic":
+        from sklearn.isotonic import IsotonicRegression
+
+        iso = IsotonicRegression(out_of_bounds="clip", y_min=0.0, y_max=1.0)
+        iso.fit(scores, target)
+        # Serialize the fitted thresholds so calibrate() reproduces the map
+        # without sklearn (pure-numpy interpolation in the container).
+        knots_x = np.asarray(iso.X_thresholds_, dtype=np.float64)
+        knots_y = np.asarray(iso.y_thresholds_, dtype=np.float64)
+        params: dict[str, Any] = {
+            "knots_x": knots_x.tolist(),
+            "knots_y": knots_y.tolist(),
+        }
+    else:  # sigmoid / Platt
+        from sklearn.linear_model import LogisticRegression
+
+        platt = LogisticRegression(C=1e10, solver="lbfgs", max_iter=1000)
+        platt.fit(scores.reshape(-1, 1), target.astype(int))
+        params = {
+            "a": float(platt.coef_.ravel()[0]),
+            "b": float(platt.intercept_.ravel()[0]),
+        }
+
+    calibrated = CalibratedModel(method=method, params=params)
+    after = calibrated.calibrate(scores)
+
+    brier_before = float(np.mean((scores - target) ** 2))
+    brier_after = float(np.mean((after - target) ** 2))
+
+    result = CalibrationResult(
+        method=method,
+        brier_before=brier_before,
+        brier_after=brier_after,
+        n_calibration=int(scores.size),
+        meta={},
+    )
+    return calibrated, result

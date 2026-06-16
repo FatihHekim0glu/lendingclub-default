@@ -21,10 +21,20 @@ from __future__ import annotations
 from dataclasses import asdict, dataclass, field
 from typing import TYPE_CHECKING, Any
 
-if TYPE_CHECKING:
-    import pandas as pd
+import pandas as pd
+
+from lendingclub_default._constants import DEFAULT_STATUSES, PAID_STATUSES
+from lendingclub_default._exceptions import ValidationError
+
+if TYPE_CHECKING:  # pragma: no cover - typing only
+    pass
 
 # quantcore-candidate: new code (label construction); status vocab in _constants.
+
+#: Resolved statuses mapped to the positive class (1 = default).
+_POSITIVE: frozenset[str] = frozenset(DEFAULT_STATUSES)
+#: Resolved statuses mapped to the negative class (0 = fully paid).
+_NEGATIVE: frozenset[str] = frozenset(PAID_STATUSES)
 
 
 @dataclass(frozen=True, slots=True)
@@ -78,7 +88,33 @@ def build_labels(df: pd.DataFrame, *, status_col: str = "loan_status") -> LabelR
     ------
     ValidationError
         If ``status_col`` is absent, or no rows resolve to a usable label.
-    NotImplementedError
-        This is a stub; the implementation is filled in by the data author.
     """
-    raise NotImplementedError("build_labels is not yet implemented.")
+    if status_col not in df.columns:
+        raise ValidationError(f"build_labels: status column {status_col!r} not found in panel.")
+
+    status = df[status_col].astype("string")
+    is_pos = status.isin(_POSITIVE)
+    is_neg = status.isin(_NEGATIVE)
+    resolved_mask = (is_pos | is_neg).to_numpy()
+
+    n_total = int(df.shape[0])
+    n_excluded = int(n_total - resolved_mask.sum())
+
+    panel = df.loc[resolved_mask].copy()
+    if panel.shape[0] == 0:
+        raise ValidationError(
+            "build_labels: no rows resolve to a usable label "
+            f"(all {n_total} row(s) are in-progress or have unknown status)."
+        )
+
+    y = is_pos.loc[resolved_mask].astype("int64")
+    y.name = "default"
+    base_rate = float(y.mean())
+
+    return LabelResult(
+        panel=panel,
+        y=y,
+        base_rate=base_rate,
+        n_excluded=n_excluded,
+        meta={"n_total": n_total, "n_positive": int(y.sum()), "status_col": status_col},
+    )

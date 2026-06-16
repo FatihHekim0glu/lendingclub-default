@@ -15,8 +15,13 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any
 
-if TYPE_CHECKING:
-    import pandas as pd
+import numpy as np
+import pandas as pd
+
+from lendingclub_default._exceptions import TemporalSplitError
+
+if TYPE_CHECKING:  # pragma: no cover - typing only
+    pass
 
 # quantcore-candidate: new code (temporal vintage split); NEVER random K-fold.
 
@@ -90,10 +95,77 @@ def temporal_split(
     TemporalSplitError
         If the chosen split leaves an empty fold, or would place a train row
         after any test row.
-    NotImplementedError
-        This is a stub; the implementation is filled in by the data author.
     """
-    raise NotImplementedError("temporal_split is not yet implemented.")
+    if issue_col not in df.columns:
+        raise TemporalSplitError(
+            f"temporal_split: vintage column {issue_col!r} not found in panel."
+        )
+    if df.shape[0] == 0:
+        raise TemporalSplitError("temporal_split: input panel is empty.")
+
+    vintage = df[issue_col]
+    unique_sorted = sorted(pd.unique(vintage.dropna()))
+    if len(unique_sorted) < 2:
+        raise TemporalSplitError(
+            "temporal_split: need at least two distinct vintages to split, "
+            f"got {len(unique_sorted)}."
+        )
+
+    if cutoff is None:
+        cutoff = _choose_cutoff(vintage, unique_sorted, test_size)
+
+    # train <= cutoff (inclusive), test strictly after cutoff.
+    train_mask = (vintage <= cutoff).to_numpy()
+    test_mask = (vintage > cutoff).to_numpy()
+
+    train_idx = df.index[train_mask].tolist()
+    test_idx = df.index[test_mask].tolist()
+    if len(train_idx) == 0:
+        raise TemporalSplitError(f"temporal_split: cutoff {cutoff!r} leaves an empty train fold.")
+    if len(test_idx) == 0:
+        raise TemporalSplitError(f"temporal_split: cutoff {cutoff!r} leaves an empty test fold.")
+
+    train_vintages = sorted(v for v in unique_sorted if v <= cutoff)
+    test_vintages = sorted(v for v in unique_sorted if v > cutoff)
+
+    split = TemporalSplit(
+        train_idx=train_idx,
+        test_idx=test_idx,
+        cutoff=cutoff,
+        train_vintages=train_vintages,
+        test_vintages=test_vintages,
+        meta={"issue_col": issue_col, "test_size": float(test_size)},
+    )
+    # Hard backstop: never return a split that leaks the future into the past.
+    assert_temporal_order(df.loc[train_idx], df.loc[test_idx], issue_col=issue_col)
+    return split
+
+
+def _choose_cutoff(
+    vintage: pd.Series,
+    unique_sorted: list[Any],
+    test_size: float,
+) -> Any:
+    """Pick the latest cutoff vintage so that ~``test_size`` of rows fall in test.
+
+    Walks the distinct vintages oldest-first and selects the largest cutoff that
+    still leaves a non-empty test fold whose row share is closest to ``test_size``.
+    Always leaves at least the final vintage in test and the first in train.
+    """
+    counts = vintage.value_counts()
+    total = int(counts.sum())
+    # Candidate cutoffs: every vintage except the last (so test is non-empty).
+    best_cutoff = unique_sorted[0]
+    best_gap = float("inf")
+    cumulative = 0
+    for v in unique_sorted[:-1]:
+        cumulative += int(counts.get(v, 0))
+        test_share = 1.0 - cumulative / total
+        gap = abs(test_share - test_size)
+        if gap <= best_gap:
+            best_gap = gap
+            best_cutoff = v
+    return best_cutoff
 
 
 def assert_temporal_order(
@@ -117,7 +189,22 @@ def assert_temporal_order(
     ------
     TemporalSplitError
         If ``max(train.issue_d) > min(test.issue_d)``.
-    NotImplementedError
-        This is a stub; the implementation is filled in by the data author.
     """
-    raise NotImplementedError("assert_temporal_order is not yet implemented.")
+    if train.shape[0] == 0 or test.shape[0] == 0:
+        raise TemporalSplitError(
+            "assert_temporal_order: both folds must be non-empty "
+            f"(train={train.shape[0]}, test={test.shape[0]})."
+        )
+    if issue_col not in train.columns or issue_col not in test.columns:
+        raise TemporalSplitError(
+            f"assert_temporal_order: vintage column {issue_col!r} missing from a fold."
+        )
+
+    train_max = np.max(train[issue_col].dropna().to_numpy())
+    test_min = np.min(test[issue_col].dropna().to_numpy())
+    if train_max > test_min:
+        raise TemporalSplitError(
+            "look-ahead detected: a train row's issue_d "
+            f"({train_max!r}) is after a test row's issue_d ({test_min!r}). "
+            "The temporal split must train on past vintages and test on future ones."
+        )

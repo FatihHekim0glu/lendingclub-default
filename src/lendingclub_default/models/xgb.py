@@ -18,9 +18,11 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 import numpy as np
+import pandas as pd
+
+from lendingclub_default._exceptions import ArtifactError, ValidationError
 
 if TYPE_CHECKING:
-    import pandas as pd
     import xgboost as xgb
 
 # quantcore-candidate: new code (XGB credit classifier); lazy booster load.
@@ -104,10 +106,55 @@ def fit_xgb(
 
     Raises
     ------
-    NotImplementedError
-        This is a stub; the implementation is filled in by the models author.
+    ValidationError
+        If the train/valid matrices are empty or row-misaligned with their targets.
     """
-    raise NotImplementedError("fit_xgb is not yet implemented.")
+    import xgboost as xgb
+
+    cfg = config if config is not None else XGBConfig()
+
+    x_tr = pd.DataFrame(x_train).astype("float64")
+    y_tr = pd.Series(y_train).astype("float64")
+    x_va = pd.DataFrame(x_valid).astype("float64")
+    y_va = pd.Series(y_valid).astype("float64")
+
+    if x_tr.empty or x_va.empty:
+        raise ValidationError("fit_xgb: train and valid matrices must be non-empty.")
+    if x_tr.shape[0] != y_tr.shape[0] or x_va.shape[0] != y_va.shape[0]:
+        raise ValidationError("fit_xgb: feature/target row counts must match.")
+    if list(x_tr.columns) != list(x_va.columns):
+        raise ValidationError("fit_xgb: train and valid must share identical columns.")
+
+    # scale_pos_weight = (#negatives / #positives) on the TRAIN fold, the
+    # standard imbalance correction for binary:logistic.
+    n_pos = float((y_tr.to_numpy() == 1).sum())
+    n_neg = float((y_tr.to_numpy() == 0).sum())
+    scale_pos_weight = (n_neg / n_pos) if n_pos > 0 else 1.0
+
+    feature_names = [str(c) for c in x_tr.columns]
+    dtrain = xgb.DMatrix(x_tr.to_numpy(), label=y_tr.to_numpy(), feature_names=feature_names)
+    dvalid = xgb.DMatrix(x_va.to_numpy(), label=y_va.to_numpy(), feature_names=feature_names)
+
+    params: dict[str, Any] = {
+        "objective": "binary:logistic",
+        "eval_metric": "auc",
+        "max_depth": cfg.max_depth,
+        "eta": cfg.learning_rate,
+        "subsample": cfg.subsample,
+        "colsample_bytree": cfg.colsample_bytree,
+        "lambda": cfg.reg_lambda,
+        "scale_pos_weight": scale_pos_weight,
+        "seed": cfg.seed,
+    }
+    booster = xgb.train(
+        params,
+        dtrain,
+        num_boost_round=cfg.n_estimators,
+        evals=[(dvalid, "valid")],
+        early_stopping_rounds=cfg.early_stopping_rounds,
+        verbose_eval=False,
+    )
+    return booster
 
 
 def predict_proba(booster: xgb.Booster, x: pd.DataFrame) -> np.ndarray:
@@ -127,10 +174,24 @@ def predict_proba(booster: xgb.Booster, x: pd.DataFrame) -> np.ndarray:
 
     Raises
     ------
-    NotImplementedError
-        This is a stub; the implementation is filled in by the models author.
+    ValidationError
+        If ``x`` is empty.
     """
-    raise NotImplementedError("predict_proba is not yet implemented.")
+    import xgboost as xgb
+
+    x_frame = pd.DataFrame(x).astype("float64")
+    if x_frame.empty:
+        raise ValidationError("predict_proba: x must be non-empty.")
+
+    # Honour the booster's own feature names when present so a DMatrix built from
+    # a re-ordered frame still aligns columns correctly.
+    booster_names = booster.feature_names
+    feature_names = (
+        booster_names if booster_names is not None else [str(c) for c in x_frame.columns]
+    )
+    dmat = xgb.DMatrix(x_frame.to_numpy(), feature_names=feature_names)
+    proba = np.asarray(booster.predict(dmat), dtype=np.float64).ravel()
+    return np.clip(proba, 0.0, 1.0)
 
 
 def save_booster(booster: xgb.Booster, path: Path | str) -> None:
@@ -145,10 +206,15 @@ def save_booster(booster: xgb.Booster, path: Path | str) -> None:
 
     Raises
     ------
-    NotImplementedError
-        This is a stub; the implementation is filled in by the models author.
+    ArtifactError
+        If the destination directory cannot be written.
     """
-    raise NotImplementedError("save_booster is not yet implemented.")
+    dest = Path(path)
+    try:
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        booster.save_model(str(dest))
+    except OSError as exc:  # pragma: no cover - filesystem failure path
+        raise ArtifactError(f"save_booster: could not write booster to {dest}: {exc}") from exc
 
 
 def load_booster(path: Path | str, *, use_cache: bool = True) -> xgb.Booster:
@@ -173,7 +239,23 @@ def load_booster(path: Path | str, *, use_cache: bool = True) -> xgb.Booster:
     ------
     ArtifactError
         If the artifact is missing or cannot be parsed.
-    NotImplementedError
-        This is a stub; the implementation is filled in by the models author.
     """
-    raise NotImplementedError("load_booster is not yet implemented.")
+    global _BOOSTER
+
+    if use_cache and _BOOSTER is not None:
+        return _BOOSTER
+
+    import xgboost as xgb
+
+    src = Path(path)
+    if not src.is_file():
+        raise ArtifactError(f"load_booster: artifact not found at {src}.")
+    booster = xgb.Booster()
+    try:
+        booster.load_model(str(src))
+    except (xgb.core.XGBoostError, ValueError) as exc:
+        raise ArtifactError(f"load_booster: could not parse booster at {src}: {exc}") from exc
+
+    if use_cache:
+        _BOOSTER = booster
+    return booster

@@ -100,7 +100,6 @@ from lendingclub_default.models.reason_codes import (
 from lendingclub_default.models.xgb import (
     XGBConfig,
     fit_xgb,
-    load_booster,
     save_booster,
 )
 from lendingclub_default.plots import (
@@ -110,7 +109,13 @@ from lendingclub_default.plots import (
     roc_figure,
     score_distribution_figure,
 )
-from lendingclub_default.train import TrainArtifacts, train
+from lendingclub_default.train import (
+    ScoredArtifacts,
+    TrainArtifacts,
+    load_artifacts,
+    load_booster,
+    train,
+)
 
 __version__ = "0.1.0"
 
@@ -140,6 +145,7 @@ __all__ = [
     "ReasonCode",
     "ReliabilityCurve",
     "RunManifest",
+    "ScoredArtifacts",
     "SyntheticConfig",
     "TemporalSplit",
     "TemporalSplitError",
@@ -168,6 +174,7 @@ __all__ = [
     "fit_xgb",
     "generate_synthetic_panel",
     "ks_statistic",
+    "load_artifacts",
     "load_booster",
     "load_panel",
     "log_loss",

@@ -89,9 +89,7 @@ def _build_synthetic_panel(n_loans: int = 2_400, seed: int = _SEED) -> pd.DataFr
     # Grade as an ordinal 0..6 (A..G); worse grade is riskier.
     grade_ord = gen.integers(0, len(_GRADES), size=n_loans)
     grade = np.array([_GRADES[i] for i in grade_ord], dtype=object)
-    sub_grade = np.array(
-        [f"{_GRADES[g]}{gen.integers(1, 6)}" for g in grade_ord], dtype=object
-    )
+    sub_grade = np.array([f"{_GRADES[g]}{gen.integers(1, 6)}" for g in grade_ord], dtype=object)
 
     # Application-time numeric features (loosely realistic ranges).
     loan_amnt = gen.uniform(1_000, 35_000, size=n_loans).round(-2)
@@ -107,9 +105,7 @@ def _build_synthetic_panel(n_loans: int = 2_400, seed: int = _SEED) -> pd.DataFr
     emp_length = gen.integers(0, 11, size=n_loans)
     monthly_rate = int_rate / 100.0 / 12.0
     n_pay = np.where(term == "36 months", 36, 60)
-    installment = (
-        loan_amnt * monthly_rate / (1 - (1 + monthly_rate) ** (-n_pay))
-    ).round(2)
+    installment = (loan_amnt * monthly_rate / (1 - (1 + monthly_rate) ** (-n_pay))).round(2)
 
     # Latent default log-odds: noisy monotone in the risk drivers.
     z = (
@@ -139,9 +135,7 @@ def _build_synthetic_panel(n_loans: int = 2_400, seed: int = _SEED) -> pd.DataFr
             "grade": grade,
             "sub_grade": sub_grade,
             "emp_length": emp_length,
-            "home_ownership": [
-                _HOME[i] for i in gen.integers(0, len(_HOME), size=n_loans)
-            ],
+            "home_ownership": [_HOME[i] for i in gen.integers(0, len(_HOME), size=n_loans)],
             "annual_inc": annual_inc.round(2),
             "dti": dti.round(2),
             "fico_range_low": fico_low,
@@ -149,16 +143,11 @@ def _build_synthetic_panel(n_loans: int = 2_400, seed: int = _SEED) -> pd.DataFr
             "revol_util": revol_util.round(2),
             "open_acc": open_acc,
             "pub_rec": pub_rec,
-            "purpose": [
-                _PURPOSES[i] for i in gen.integers(0, len(_PURPOSES), size=n_loans)
-            ],
-            "addr_state": [
-                _STATES[i] for i in gen.integers(0, len(_STATES), size=n_loans)
-            ],
+            "purpose": [_PURPOSES[i] for i in gen.integers(0, len(_PURPOSES), size=n_loans)],
+            "addr_state": [_STATES[i] for i in gen.integers(0, len(_STATES), size=n_loans)],
             "installment": installment,
             "verification_status": [
-                _VERIFICATION[i]
-                for i in gen.integers(0, len(_VERIFICATION), size=n_loans)
+                _VERIFICATION[i] for i in gen.integers(0, len(_VERIFICATION), size=n_loans)
             ],
             "issue_d": issue_d,
             # --- outcome --------------------------------------------------- #

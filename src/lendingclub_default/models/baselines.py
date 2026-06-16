@@ -17,9 +17,11 @@ from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any
 
 import numpy as np
+import pandas as pd
+
+from lendingclub_default._exceptions import ValidationError
 
 if TYPE_CHECKING:
-    import pandas as pd
     from sklearn.linear_model import LogisticRegression
 
 # quantcore-candidate: new code (credit baselines); logistic parity vs sklearn.
@@ -62,10 +64,14 @@ class BaseRatePredictor:
 
         Raises
         ------
-        NotImplementedError
-            This is a stub; the implementation is filled in by the models author.
+        ValidationError
+            If ``y`` is empty.
         """
-        raise NotImplementedError("BaseRatePredictor.fit is not yet implemented.")
+        target = pd.Series(y)
+        if target.empty:
+            raise ValidationError("BaseRatePredictor.fit: target y must be non-empty.")
+        base_rate = float(target.astype("float64").mean())
+        return cls(base_rate=base_rate, meta={"n_train": int(target.shape[0])})
 
     def predict_proba(self, x: pd.DataFrame) -> np.ndarray:
         """Return the constant base-rate probability for every row of ``x``.
@@ -79,13 +85,9 @@ class BaseRatePredictor:
         -------
         numpy.ndarray
             A ``(n_rows,)`` array filled with ``base_rate``.
-
-        Raises
-        ------
-        NotImplementedError
-            This is a stub; the implementation is filled in by the models author.
         """
-        raise NotImplementedError("BaseRatePredictor.predict_proba is not yet implemented.")
+        n_rows = int(x.shape[0])
+        return np.full(n_rows, float(self.base_rate), dtype=np.float64)
 
 
 def fit_logistic(
@@ -118,7 +120,27 @@ def fit_logistic(
 
     Raises
     ------
-    NotImplementedError
-        This is a stub; the implementation is filled in by the models author.
+    ValidationError
+        If ``x``/``y`` are empty or misaligned in length.
     """
-    raise NotImplementedError("fit_logistic is not yet implemented.")
+    from sklearn.linear_model import LogisticRegression
+
+    x_frame = pd.DataFrame(x).astype("float64")
+    y_series = pd.Series(y).astype("float64")
+    if x_frame.empty or y_series.empty:
+        raise ValidationError("fit_logistic: x and y must be non-empty.")
+    if x_frame.shape[0] != y_series.shape[0]:
+        raise ValidationError(
+            "fit_logistic: x and y must have the same number of rows "
+            f"({x_frame.shape[0]} != {y_series.shape[0]})."
+        )
+    # ``lbfgs`` applies L2 regularization by default (the deprecated ``penalty``
+    # kwarg is intentionally omitted); ``C`` is the inverse L2 strength.
+    model = LogisticRegression(
+        C=c,
+        solver="lbfgs",
+        max_iter=max_iter,
+        random_state=seed,
+    )
+    model.fit(x_frame.to_numpy(), y_series.to_numpy().astype(int))
+    return model

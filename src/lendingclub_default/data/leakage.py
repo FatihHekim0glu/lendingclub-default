@@ -17,6 +17,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Final
 
+from lendingclub_default._exceptions import LeakageError
+
 if TYPE_CHECKING:
     import pandas as pd
 
@@ -109,13 +111,11 @@ def drop_leakage(df: pd.DataFrame) -> pd.DataFrame:
     pandas.DataFrame
         A copy of ``df`` containing only non-leakage (origination-time) columns,
         with original column order preserved.
-
-    Raises
-    ------
-    NotImplementedError
-        This is a stub; the implementation is filled in by the data author.
     """
-    raise NotImplementedError("drop_leakage is not yet implemented.")
+    to_drop = [col for col in df.columns if str(col).lower() in LEAKAGE_COLS]
+    # ``df.drop`` returns a copy (the input is never mutated) and preserves the
+    # relative order of the surviving columns.
+    return df.drop(columns=to_drop)
 
 
 def assert_no_leakage(df: pd.DataFrame) -> None:
@@ -133,7 +133,11 @@ def assert_no_leakage(df: pd.DataFrame) -> None:
     ------
     LeakageError
         If one or more leakage columns are present.
-    NotImplementedError
-        This is a stub; the implementation is filled in by the data author.
     """
-    raise NotImplementedError("assert_no_leakage is not yet implemented.")
+    survivors = sorted(str(col) for col in df.columns if str(col).lower() in LEAKAGE_COLS)
+    if survivors:
+        raise LeakageError(
+            "post-funding leakage column(s) survived preprocessing: "
+            f"{survivors}. These encode the loan outcome and must be dropped "
+            "before the model sees them."
+        )

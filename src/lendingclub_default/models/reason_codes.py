@@ -13,11 +13,12 @@ inside the dev-only helper).
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
-if TYPE_CHECKING:
-    import numpy as np
-    import pandas as pd
+import numpy as np
+import pandas as pd
+
+from lendingclub_default._exceptions import ValidationError
 
 # quantcore-candidate: new code (reason codes); WOE/logit coeffs in-container,
 # SHAP dev-only (never in the API image).
@@ -76,10 +77,36 @@ def reason_codes_from_logit(
 
     Raises
     ------
-    NotImplementedError
-        This is a stub; the implementation is filled in by the models author.
+    ValidationError
+        If ``top_k`` is not positive or the inputs share no common features.
     """
-    raise NotImplementedError("reason_codes_from_logit is not yet implemented.")
+    if top_k <= 0:
+        raise ValidationError("reason_codes_from_logit: top_k must be positive.")
+
+    coef = pd.Series(coefficients).astype("float64")
+    row = pd.Series(x_row).astype("float64")
+
+    common = coef.index.intersection(row.index)
+    if len(common) == 0:
+        raise ValidationError(
+            "reason_codes_from_logit: coefficients and x_row share no common features."
+        )
+
+    contributions = coef.reindex(common) * row.reindex(common)
+    ordered = contributions.reindex(contributions.abs().sort_values(ascending=False).index)
+
+    codes: list[ReasonCode] = []
+    for feature, value in ordered.head(top_k).items():
+        contribution = float(value)
+        direction = "increases" if contribution >= 0.0 else "decreases"
+        codes.append(
+            ReasonCode(
+                feature=str(feature),
+                direction=direction,
+                contribution=contribution,
+            )
+        )
+    return codes
 
 
 def shap_reason_codes(
@@ -112,7 +139,40 @@ def shap_reason_codes(
 
     Raises
     ------
-    NotImplementedError
-        This is a stub; the implementation is filled in by the models author.
+    ValidationError
+        If ``top_k`` is not positive or the SHAP vector and names misalign.
+    ImportError
+        If SHAP is not installed (it lives in the ``[dev]`` extra only).
     """
-    raise NotImplementedError("shap_reason_codes is not yet implemented.")
+    if top_k <= 0:
+        raise ValidationError("shap_reason_codes: top_k must be positive.")
+
+    # DEV-ONLY lazy import: SHAP lives in the [dev] extra and is never installed
+    # in the shipped container, so this function must not run there. SHAP ships no
+    # type stubs, so the import is locally suppressed (it is absent from the API
+    # image's mypy surface).
+    import shap  # type: ignore[import-untyped]
+
+    explainer = shap.TreeExplainer(booster)
+    row = np.asarray(x_row, dtype=np.float64).reshape(1, -1)
+    values = np.asarray(explainer.shap_values(row), dtype=np.float64).ravel()
+
+    if values.size != len(feature_names):
+        raise ValidationError(
+            "shap_reason_codes: SHAP vector and feature_names misaligned "
+            f"({values.size} != {len(feature_names)})."
+        )
+
+    order = np.argsort(np.abs(values))[::-1][:top_k]
+    codes: list[ReasonCode] = []
+    for idx in order:
+        contribution = float(values[idx])
+        direction = "increases" if contribution >= 0.0 else "decreases"
+        codes.append(
+            ReasonCode(
+                feature=str(feature_names[idx]),
+                direction=direction,
+                contribution=contribution,
+            )
+        )
+    return codes

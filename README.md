@@ -63,6 +63,34 @@ clean = lcd.drop_leakage(panel)                 # remove post-funding columns
 labels = lcd.build_labels(panel)                # exclude in-progress loans
 ```
 
+### Scoring entrypoint (what the hosted tool calls)
+
+`train` emits a `<2MB` booster JSON + fitted pipeline + calibration map; the
+shipped tool loads it **lazily** via `load_booster()` (a module-level
+`_BOOSTER=None` sentinel — no training at import or per request) and scores one
+application through `score_one`:
+
+```python
+import lendingclub_default as lcd
+
+lcd.train(out_dir="artifacts")                  # synthetic-trained <2MB artifact
+bundle = lcd.load_booster("artifacts")          # lazy, cached ScoredArtifacts
+
+result = bundle.score_one({                      # one application-time row
+    "loan_amnt": 15000, "term": "36 months", "int_rate": 22.5, "grade": "E",
+    "sub_grade": "E3", "emp_length": 2, "home_ownership": "RENT",
+    "annual_inc": 38000, "dti": 29.0, "fico_range_low": 660, "fico_range_high": 664,
+    "revol_util": 78.0, "open_acc": 6, "pub_rec": 1, "purpose": "small_business",
+    "addr_state": "NV", "installment": 560, "verification_status": "Not Verified",
+})
+# -> {"pd": 0.29, "decile": 3, "reason_codes": [...],
+#     "predicted_label": "default", "threshold": 0.16, "model_auc": 0.71, ...}
+```
+
+`pd` is the calibrated probability of default in `[0, 1]`; `decile` is `1..10`
+(1 = safest); `reason_codes` are container-safe adverse-action explanations from
+the logistic coefficients (SHAP is dev-only and never enters the image).
+
 ## How it works (the correctness guards)
 
 - **No leakage.** `drop_leakage` removes every post-funding column in the frozen
