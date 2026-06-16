@@ -47,6 +47,13 @@ LEAKAGE_COLS: Final[frozenset[str]] = frozenset(
         "collection_recovery_fee",
         "collections_12_mths_ex_med",
         "chargeoff_within_12_mths",
+        # --- borrower-status fields LendingClub REFRESHES post-funding ------- #
+        # (current, not application-time, snapshots — they track the delinquency
+        # the outcome is derived from, so they leak on the real `accepted.csv`
+        # path even though they look like benign bureau features)
+        "acc_now_delinq",
+        "tot_coll_amt",
+        "delinq_amnt",
         # --- funded amounts (only known once the loan is actually funded) ---- #
         "funded_amnt",
         "funded_amnt_inv",
