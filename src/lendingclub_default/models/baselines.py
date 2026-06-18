@@ -2,9 +2,9 @@
 
 Two honest reference points the headline XGBoost must beat (or tie):
 
-- :class:`BaseRatePredictor` — predicts the constant train base rate for every
+- :class:`BaseRatePredictor` - predicts the constant train base rate for every
   loan (AUC = 0.5 by construction; the floor any real model must clear);
-- :func:`fit_logistic` — an L2-regularized logistic regression on the engineered
+- :func:`fit_logistic` - an L2-regularized logistic regression on the engineered
   features (a strong, well-calibrated linear baseline; the DeLong test compares
   XGB against *this*, not against the base rate).
 

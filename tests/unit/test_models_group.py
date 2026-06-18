@@ -371,7 +371,7 @@ def test_reason_codes_input_guards() -> None:
 
 
 # --------------------------------------------------------------------------- #
-# Reason codes — SHAP (DEV-ONLY path; SHAP lives in the [dev] extra)          #
+# Reason codes - SHAP (DEV-ONLY path; SHAP lives in the [dev] extra)          #
 # --------------------------------------------------------------------------- #
 @pytest.mark.unit
 def test_shap_reason_codes_dev_path(synthetic_panel: pd.DataFrame) -> None:

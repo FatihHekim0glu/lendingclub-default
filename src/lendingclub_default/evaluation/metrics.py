@@ -1,16 +1,16 @@
 """Ranking and probabilistic evaluation metrics for the default classifier.
 
-The honest headline is ROC-AUC / PR-AUC / Brier — NEVER accuracy, NEVER
+The honest headline is ROC-AUC / PR-AUC / Brier - NEVER accuracy, NEVER
 profit/ROI. These functions are validated to ``1e-10`` against ``sklearn.metrics``
 in the parity suite, so the library can report them without a runtime sklearn
 dependency in hot paths.
 
-- :func:`roc_auc` — area under the ROC curve (ranking quality).
-- :func:`pr_auc` — average precision / area under the PR curve (the metric that
+- :func:`roc_auc` - area under the ROC curve (ranking quality).
+- :func:`pr_auc` - average precision / area under the PR curve (the metric that
   matters under a ~15% positive base rate).
-- :func:`brier_score` — mean squared error of the calibrated PD (calibration).
-- :func:`log_loss` — cross-entropy of the calibrated PD.
-- :func:`ks_statistic` — Kolmogorov-Smirnov separation of the two score CDFs.
+- :func:`brier_score` - mean squared error of the calibrated PD (calibration).
+- :func:`log_loss` - cross-entropy of the calibrated PD.
+- :func:`ks_statistic` - Kolmogorov-Smirnov separation of the two score CDFs.
 
 Importing this module has no side effects.
 """

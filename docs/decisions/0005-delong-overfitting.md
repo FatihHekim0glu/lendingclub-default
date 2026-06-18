@@ -9,7 +9,7 @@
 
 The headline claim is comparative: **does the XGBoost beat the L2-logistic
 baseline, or merely tie it?** Reporting two AUCs and eyeballing "0.708 < 0.714, so
-they're close" is not a verdict — it ignores sampling noise and ignores
+they're close" is not a verdict, it ignores sampling noise and ignores
 **multiplicity**: we tried a grid of configurations (depths × learning rates) and
 could have reported the best of them.
 
@@ -33,7 +33,7 @@ over the recorded `n_trials`.
 
 - The recorded `n_trials` counts the **full explored configuration grid** (the
   depth × learning-rate sweep), and a guard asserts `n_trials ≥` the actual grid
-  size — under-counting is impossible without failing a test.
+  size, under-counting is impossible without failing a test.
 - The Bonferroni-corrected p-value scales with the comparison count and is capped
   at `1.0`, property-tested for monotonicity
   (`property/test_evaluation_invariants.py`).
@@ -42,18 +42,18 @@ over the recorded `n_trials`.
 
 On the committed synthetic artifact the result is **auc_diff = −0.005,
 z = −1.68, p = 0.84** over a 9-config grid: the XGB does **not** significantly
-beat the logistic — it **ties** it. That is the honest finding, and it is what the
+beat the logistic, it **ties** it. That is the honest finding, and it is what the
 headline reports.
 
 A cost-matrix **threshold sweep** (`evaluation/threshold.py`) is reported for
 context but is **never baked into the headline**, which stays AUC / PR-AUC / Brier
-— never accuracy, never profit.
+,  never accuracy, never profit.
 
 ## Consequences
 
 - **Positive.** The "XGB vs logistic" claim survives both noise (DeLong) and
-  multiplicity (Bonferroni over the full grid). The conservative verdict — "ties"
-  — is the correct one and is reported as such.
+  multiplicity (Bonferroni over the full grid). The conservative verdict, "ties"
+ , is the correct one and is reported as such.
 - **Positive.** Counting the full grid in `n_trials`, asserted by a guard, makes
   data-snooping mechanically hard.
 - **Cost.** A genuine small edge could be deflated below significance by

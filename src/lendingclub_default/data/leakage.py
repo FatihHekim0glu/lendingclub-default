@@ -2,7 +2,7 @@
 
 Post-funding leakage is THE trap of LendingClub default modelling. The accepted-
 loans CSV ships dozens of columns that are only populated *after* a loan is
-funded — payments received, recoveries, charge-off bookkeeping, hardship and
+funded - payments received, recoveries, charge-off bookkeeping, hardship and
 settlement records. Every one of these encodes (directly or indirectly) the loan
 outcome we are trying to predict, so a model that sees them scores a fraudulent
 ~0.99 AUC. :data:`LEAKAGE_COLS` is the frozen, reviewed allowlist of every such
@@ -50,7 +50,7 @@ LEAKAGE_COLS: Final[frozenset[str]] = frozenset(
         "collections_12_mths_ex_med",
         "chargeoff_within_12_mths",
         # --- borrower-status fields LendingClub REFRESHES post-funding ------- #
-        # (current, not application-time, snapshots — they track the delinquency
+        # (current, not application-time, snapshots - they track the delinquency
         # the outcome is derived from, so they leak on the real `accepted.csv`
         # path even though they look like benign bureau features)
         "acc_now_delinq",

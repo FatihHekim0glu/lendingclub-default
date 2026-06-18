@@ -147,8 +147,8 @@ def test_reliability_curve_matches_sklearn_calibration_curve(strategy: str) -> N
 def test_calibration_matches_calibrated_classifier_cv() -> None:
     """An isotonic CalibratedClassifierCV is well-calibrated under our ECE/Brier.
 
-    The calibrated reliability curve should sit near the diagonal (low ECE) —
-    the same notion CalibratedClassifierCV optimizes — and its Brier score should
+    The calibrated reliability curve should sit near the diagonal (low ECE) -
+    the same notion CalibratedClassifierCV optimizes - and its Brier score should
     track the raw score's closely (calibrating an already-well-specified base
     model neither helps nor hurts much).
     """

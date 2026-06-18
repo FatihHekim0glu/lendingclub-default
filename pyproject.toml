@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "lendingclub-default"
 version = "0.1.0"
-description = "Leakage-free, calibrated XGBoost credit-default classifier for LendingClub-schema loans — temporal vintage split, DeLong-tested AUC gap, honest AUC/PR-AUC/Brier headline (ranks risk, never predicts individuals, no profit claims)."
+description = "Leakage-free, calibrated XGBoost credit-default classifier for LendingClub-schema loans: temporal vintage split, DeLong-tested AUC gap, honest AUC/PR-AUC/Brier headline (ranks risk, never predicts individuals, no profit claims)."
 readme = "README.md"
 requires-python = ">=3.11"
 license = { text = "MIT" }
@@ -60,7 +60,7 @@ viz = [
     "plotly>=5.20",
     "kaleido>=0.2.1",
 ]
-# Developer + parity-oracle + lint/type/test stack. SHAP is dev-only — it is
+# Developer + parity-oracle + lint/type/test stack. SHAP is dev-only, it is
 # NEVER imported in the shipped container (reason codes there use logit/WOE).
 dev = [
     "pytest>=8.0",
@@ -181,6 +181,11 @@ filterwarnings = [
 [tool.coverage.run]
 branch = true
 source = ["lendingclub_default"]
+omit = [
+    # Pure type-alias module: every statement is a string-literal annotation under
+    # ``from __future__ import annotations``, so nothing executes at runtime.
+    "*/lendingclub_default/_typing.py",
+]
 
 [tool.coverage.report]
 fail_under = 85

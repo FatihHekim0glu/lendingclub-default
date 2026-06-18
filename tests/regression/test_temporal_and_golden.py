@@ -2,11 +2,11 @@
 
 Two pinned-behaviour guards against the real implementations:
 
-- **temporal-order guard** — a vintage split trains on past vintages and tests on
+- **temporal-order guard** - a vintage split trains on past vintages and tests on
   strictly later ones, so no train ``issue_d`` is ever after any test ``issue_d``
   (the no-look-ahead invariant), and ``assert_temporal_order`` fires when that is
   violated;
-- **golden metrics** — a leakage-free model on the frozen synthetic vintage
+- **golden metrics** - a leakage-free model on the frozen synthetic vintage
   fixture lands in a believable, locked band (ROC-AUC beats the 0.5 floor but is
   not a fraudulent ~0.99; Brier is a sane probability), pinning the honest
   headline against silent regressions.

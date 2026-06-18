@@ -28,9 +28,7 @@ uv run pytest -q --cov=lendingclub_default --cov-report=term --cov-fail-under=85
 ```
 
 - **Lint** (`ruff`) must pass.
-- **Types** (`mypy --strict`) is run on every PR. It is currently non-blocking in
-  CI while residual strict-mode issues are burned down, but new code should not
-  add type errors.
+- **Types** (`mypy --strict`) must pass. It runs as a blocking step on every PR.
 - **Tests** (`pytest`) must pass with **coverage ≥ 85%** (the gate also lives in
   `[tool.coverage.report] fail_under` in `pyproject.toml`).
 
@@ -40,7 +38,7 @@ CI runs the full matrix on Python 3.11, 3.12, and 3.13.
 
 - **No leakage.** Any post-funding column listed in
   `lendingclub_default.LEAKAGE_COLS` must be dropped before features are built. A
-  property test asserts none survive the pipeline — do not weaken it.
+  property test asserts none survive the pipeline, do not weaken it.
 - **No look-ahead.** The train/test split is temporal by `issue_d` (train ≤
   cutoff, test on later vintages). Never substitute a random K-fold.
 - **Honest headline.** Report ROC-AUC / PR-AUC / Brier. Never report accuracy or
@@ -49,9 +47,8 @@ CI runs the full matrix on Python 3.11, 3.12, and 3.13.
 ## Commit hygiene
 
 - Use clear, present-tense commit messages.
-- **Do not** add AI-attribution trailers — no `Co-Authored-By: Claude`,
-  no "Generated with Claude", no robot-emoji attribution lines. The
-  `.github/workflows/no-ai-attribution.yml` guard fails any PR that contains them.
+- **Do not** add tooling co-author or generated-with trailers to commit
+  messages.
 
 ## Pull requests
 

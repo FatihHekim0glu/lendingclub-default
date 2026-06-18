@@ -150,7 +150,7 @@ class ScoredArtifacts:
         The clean public scoring entrypoint the backend calls: turns a single
         raw application row into a calibrated probability of default, a risk
         decile, an honest decision label, and container-safe reason codes (from
-        the L2-logistic coefficients — no SHAP in the image).
+        the L2-logistic coefficients - no SHAP in the image).
 
         Parameters
         ----------
@@ -164,7 +164,7 @@ class ScoredArtifacts:
         -------
         dict
             ``{"pd", "decile", "reason_codes", "predicted_label", "threshold",
-            "model_auc", "base_rate", "data_source"}`` — ``pd`` is the calibrated
+            "model_auc", "base_rate", "data_source"}`` - ``pd`` is the calibrated
             PD in ``[0, 1]``; ``decile`` is ``1..10`` (1 = safest); ``reason_codes``
             is a list of ``{feature, direction, contribution}`` dicts.
 
@@ -239,7 +239,7 @@ class TrainArtifacts:
     n_trials:
         The RECORDED nested-CV trial count (guard asserts it >= the config grid).
     data_source:
-        ``"synthetic"`` or ``"kaggle"`` — which panel the artifact was trained on.
+        ``"synthetic"`` or ``"kaggle"`` - which panel the artifact was trained on.
     manifest:
         The run's :class:`lendingclub_default.RunManifest` as a dict.
     """
@@ -281,7 +281,7 @@ def _temporal_subsplit(
     Returns ``(early_idx, late_idx)`` where ``late_idx`` are the most recent
     vintages (~``holdout_size`` of rows). Used to peel an early-stopping
     validation slice and a calibration slice off the train fold WITHOUT ever
-    touching the held-out test vintages — so no future leaks into fitting.
+    touching the held-out test vintages - so no future leaks into fitting.
 
     Falls back to a deterministic tail slice when the fold has a single vintage
     (so the orchestrator still produces valid, ordered sub-folds).
@@ -367,7 +367,7 @@ def train(
     # 3b. Peel a later-vintage EARLY-STOPPING fold and a CALIBRATION fold off the
     #     train fold only (never the test vintages). Carve in two stages so the
     #     calibration fold is the latest train slice, the early-stop fold next,
-    #     and the model-fit core the earliest — all strictly ordered in time.
+    #     and the model-fit core the earliest - all strictly ordered in time.
     fit_idx, calib_idx = _temporal_subsplit(
         train_panel, y_train, issue_col="issue_d", holdout_size=0.2
     )
@@ -385,7 +385,7 @@ def train(
     y_valid = y_core.loc[valid_idx]
 
     # 4. Build + FIT the feature pipeline on the inner (model-fit) fold ONLY. The
-    #    same fitted object transforms every later fold — out-of-fold target
+    #    same fitted object transforms every later fold - out-of-fold target
     #    encoding inside it guarantees no row sees its own label, and later
     #    vintages cannot influence any learned statistic.
     spec = FeatureSpec()
@@ -531,7 +531,7 @@ def _logistic_coefficients(
 
     Powers the container-safe reason codes: the signed log-odds contribution of
     each feature is ``coef * x`` (computed at score time). Returns an empty dict
-    if the coefficient/name counts disagree (defensive — reason codes are then
+    if the coefficient/name counts disagree (defensive - reason codes are then
     simply omitted rather than misaligned).
     """
     coef = np.asarray(model.coef_, dtype="float64").ravel()

@@ -9,7 +9,7 @@ Covers the three invariants the brief requires for the features group:
 2. **Fit/transform shape invariance.** ``transform`` produces the same number of
    feature columns as ``fit_transform``, for any (non-empty) row count.
 3. **Row-permutation invariance.** Permuting the input rows permutes the output
-   rows identically — the transform is row-wise and order-independent.
+   rows identically - the transform is row-wise and order-independent.
 
 A fourth check pins the out-of-fold target encoder's leakage guard: its
 ``fit_transform`` (out-of-fold) encoding for a category never equals the naive
@@ -96,7 +96,7 @@ def test_fit_transform_shape_invariance(synthetic_panel: pd.DataFrame) -> None:
 )
 @given(seed=st.integers(min_value=0, max_value=2**16))
 def test_row_permutation_invariance(synthetic_panel: pd.DataFrame, seed: int) -> None:
-    """Invariant (b): transform is row-wise — permuting rows permutes outputs."""
+    """Invariant (b): transform is row-wise - permuting rows permutes outputs."""
     x, y = _xy(synthetic_panel, FeatureSpec())
     cutoff = len(x) // 2
     pipe = build_feature_pipeline(FeatureSpec(), seed=0).fit(x.iloc[:cutoff], y.iloc[:cutoff])

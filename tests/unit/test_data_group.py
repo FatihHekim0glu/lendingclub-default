@@ -3,12 +3,12 @@
 Covers the data author's group (``data/synthetic.py``, ``data/leakage.py``,
 ``data/labels.py``, ``data/load.py``, ``data/split.py``):
 
-- **label construction** — defaults/paid resolve to {1, 0}, in-progress excluded;
-- **leakage-drop completeness** — NO ``LEAKAGE_COLS`` member survives, including
+- **label construction** - defaults/paid resolve to {1, 0}, in-progress excluded;
+- **leakage-drop completeness** - NO ``LEAKAGE_COLS`` member survives, including
   the three borrower-status fields (``acc_now_delinq``, ``tot_coll_amt``,
   ``delinq_amnt``) added to the runtime allowlist;
-- **temporal order** — no train ``issue_d`` is after any test ``issue_d``;
-- **seed determinism** — the generator reproduces its panel byte-for-byte.
+- **temporal order** - no train ``issue_d`` is after any test ``issue_d``;
+- **seed determinism** - the generator reproduces its panel byte-for-byte.
 """
 
 from __future__ import annotations

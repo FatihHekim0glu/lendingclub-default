@@ -1,11 +1,11 @@
-"""LendingClub default classifier — a pure, typed compute library.
+"""LendingClub default classifier - a pure, typed compute library.
 
 A leakage-free, calibrated XGBoost classifier that *ranks* a loan application's
 probability of default at origination. It is benchmarked honestly out-of-time
 (temporal vintage split, never random K-fold) against a base-rate predictor and
 an L2-logistic baseline, with a DeLong test on the AUC gap.
 
-HONEST-NULL DISCIPLINE: the headline is ROC-AUC / PR-AUC / Brier — NEVER accuracy
+HONEST-NULL DISCIPLINE: the headline is ROC-AUC / PR-AUC / Brier - NEVER accuracy
 and NEVER profit/ROI. The model ranks risk; it does not predict which individuals
 default. Two limits are stated up front: (1) accepted-loans-only selection bias;
 (2) ``int_rate`` / ``grade`` are LendingClub's own risk model, so their importance

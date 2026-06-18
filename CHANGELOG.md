@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- CI now runs `mypy` as a blocking step (it is clean) and emits coverage XML for
+  Codecov, mirroring the house gold-standard workflow.
+
+### Tests
+
+- Added direct unit tests for the training orchestrator, the CLI command
+  handlers, the validation guards, and the feature-pipeline error paths, raising
+  coverage above the 85% gate without relying on the slow integration round-trip.
+
 ## [0.1.0] - 2026-06-16
 
 First release: a leakage-free, calibrated XGBoost credit-default classifier for
@@ -26,7 +37,7 @@ reproducible synthetic-trained `<2MB` artifact.
   `LEAKAGE_COLS` allowlist + `drop_leakage` / `assert_no_leakage`),
   `data/labels.py` (resolved-status labels, in-progress loans excluded),
   `data/split.py` (temporal vintage split by `issue_d`).
-- **Features.** `features/pipeline.py` — fit-on-train-only `ColumnTransformer`
+- **Features.** `features/pipeline.py`, fit-on-train-only `ColumnTransformer`
   with out-of-fold target encoding for high-cardinality categoricals.
 - **Models.** `models/baselines.py` (base-rate + L2-logistic), `models/xgb.py`
   (XGBoost with `scale_pos_weight` and temporal early stopping),
@@ -51,8 +62,8 @@ reproducible synthetic-trained `<2MB` artifact.
   `1e-10`, leakage/no-look-ahead/PD-in-`[0,1]` property tests, golden-band and
   temporal-order regression tests, and a CLI round-trip. Coverage gate ≥ 85%.
 - **Docs & governance.** README (honest headline, two limitations, reproduce
-  block, validation table), `docs/DESIGN.md` + ADRs 0001–0005, `CITATION.cff`,
-  MIT `LICENSE`, and a `no-ai-attribution` CI guard.
+  block, validation table), `docs/DESIGN.md` + ADRs 0001 to 0005, `CITATION.cff`,
+  and the MIT `LICENSE`.
 
 [Unreleased]: https://github.com/FatihHekim0glu/lendingclub-default/compare/v0.1.0...HEAD
 [0.1.0]: https://github.com/FatihHekim0glu/lendingclub-default/releases/tag/v0.1.0

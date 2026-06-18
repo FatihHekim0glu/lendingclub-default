@@ -4,15 +4,15 @@ Every fixture is deterministic (driven by
 :func:`lendingclub_default._rng.make_rng`) and returns pandas objects, so tests
 across the suite share identical synthetic data with known structure:
 
-- ``synthetic_panel`` — a small LendingClub-schema panel carrying application-time
+- ``synthetic_panel`` - a small LendingClub-schema panel carrying application-time
   columns, ``issue_d`` vintages spread across 2015-2018, post-funding LEAKAGE
   columns, and a ``loan_status`` outcome with a ~15% default rate. The default
   probability is a noisy monotone function of fico / dti / int_rate / grade, so a
   leakage-free model lands at a believable AUC (not 0.5, not 0.99). Built here
   directly (not via the stubbed generator) so it is usable from day one.
-- ``k_vintage_fixture`` — the same panel plus the list of its ordered unique
+- ``k_vintage_fixture`` - the same panel plus the list of its ordered unique
   vintages, for exercising the temporal split.
-- ``schema_with_leakage`` — the explicit set of leakage columns present in the
+- ``schema_with_leakage`` - the explicit set of leakage columns present in the
   panel, for the no-leakage drop/property tests.
 
 Importing this module has no side effects beyond fixture registration.
