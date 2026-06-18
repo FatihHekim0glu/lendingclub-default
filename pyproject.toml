@@ -181,6 +181,11 @@ filterwarnings = [
 [tool.coverage.run]
 branch = true
 source = ["lendingclub_default"]
+omit = [
+    # Pure type-alias module: every statement is a string-literal annotation under
+    # ``from __future__ import annotations``, so nothing executes at runtime.
+    "*/lendingclub_default/_typing.py",
+]
 
 [tool.coverage.report]
 fail_under = 85
