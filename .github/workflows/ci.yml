@@ -33,17 +33,21 @@ jobs:
           python-version: ${{ matrix.python-version }}
           enable-cache: true
 
-      - name: Install project (data + viz + dev extras)
-        run: uv pip install --system -e '.[data,viz,dev]'
+      - name: Sync dependencies (all extras)
+        run: uv sync --all-extras
 
       - name: Lint (ruff)
-        run: uv run ruff check src
+        run: uv run ruff check src tests
 
       - name: Type-check (mypy, strict)
-        # Non-blocking: strict mypy may have residual issues we still surface in
-        # the log without failing the whole pipeline.
-        continue-on-error: true
         run: uv run mypy src
 
       - name: Test (pytest + coverage gate)
-        run: uv run pytest -q --cov=lendingclub_default --cov-report=term --cov-fail-under=85
+        run: uv run pytest -q --cov=lendingclub_default --cov-report=term-missing --cov-report=xml --cov-fail-under=85
+
+      - name: Upload coverage to Codecov
+        if: matrix.python-version == '3.12'
+        uses: codecov/codecov-action@v4
+        with:
+          files: coverage.xml
+          fail_ci_if_error: false
