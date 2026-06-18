@@ -7,11 +7,11 @@ import path of the compute library).
 
 Figures:
 
-- :func:`roc_figure` — ROC curve (with the 0.5 diagonal and the AUC in the title).
-- :func:`pr_figure` — precision-recall curve (with the base-rate floor line).
-- :func:`calibration_figure` — reliability curve vs. the perfect-calibration
+- :func:`roc_figure` - ROC curve (with the 0.5 diagonal and the AUC in the title).
+- :func:`pr_figure` - precision-recall curve (with the base-rate floor line).
+- :func:`calibration_figure` - reliability curve vs. the perfect-calibration
   diagonal.
-- :func:`score_distribution_figure` — predicted-PD histograms split by realised
+- :func:`score_distribution_figure` - predicted-PD histograms split by realised
   outcome (the separation the KS statistic summarizes).
 
 Importing this module has no side effects.
@@ -171,7 +171,7 @@ def roc_figure(
         )
     )
     fig.update_layout(
-        title={"text": f"{title} — AUC = {auc:.3f}"},
+        title={"text": f"{title} - AUC = {auc:.3f}"},
         xaxis={"title": {"text": "False positive rate"}, "range": [0.0, 1.0]},
         yaxis={"title": {"text": "True positive rate"}, "range": [0.0, 1.0]},
         legend={"orientation": "h", "yanchor": "bottom", "y": -0.25},
@@ -236,7 +236,7 @@ def pr_figure(
         )
     )
     fig.update_layout(
-        title={"text": f"{title} — AP = {ap:.3f}, base rate = {base_rate:.3f}"},
+        title={"text": f"{title} - AP = {ap:.3f}, base rate = {base_rate:.3f}"},
         xaxis={"title": {"text": "Recall"}, "range": [0.0, 1.0]},
         yaxis={"title": {"text": "Precision"}, "range": [0.0, 1.0]},
         legend={"orientation": "h", "yanchor": "bottom", "y": -0.25},
@@ -301,7 +301,7 @@ def calibration_figure(
         )
     )
     fig.update_layout(
-        title={"text": f"{title} — ECE = {ece:.3f}"},
+        title={"text": f"{title} - ECE = {ece:.3f}"},
         xaxis={"title": {"text": "Mean predicted PD"}, "range": [0.0, 1.0]},
         yaxis={"title": {"text": "Observed default frequency"}, "range": [0.0, 1.0]},
         legend={"orientation": "h", "yanchor": "bottom", "y": -0.25},

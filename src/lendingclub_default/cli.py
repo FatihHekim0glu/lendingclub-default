@@ -49,7 +49,7 @@ def build_app() -> typer.Typer:
         add_completion=False,
         help=(
             "Leakage-free, calibrated credit-default classifier. Ranks a loan "
-            "application's probability of default at origination — honest "
+            "application's probability of default at origination - honest "
             "ROC-AUC / PR-AUC / Brier, never accuracy or profit. The shipped "
             "demo model is trained on a synthetic LC-schema panel."
         ),
@@ -171,7 +171,7 @@ def train_command(*, data: str | None, out_dir: str, seed: int) -> int:
 
     metrics = artifacts.metrics
     logistic = artifacts.logistic_metrics
-    print("LendingClub default — training run")
+    print("LendingClub default - training run")
     print("=" * 44)
     print(f"data source        : {artifacts.data_source}")
     print(f"booster            : {artifacts.booster_path}")
@@ -225,7 +225,7 @@ def score_command(*, artifacts_dir: str, application: str | None) -> int:
         print(f"error: {exc}")
         return 1
 
-    print("LendingClub default — single-application score")
+    print("LendingClub default - single-application score")
     print("=" * 44)
     print(f"calibrated PD      : {result['pd']:.4f}")
     print(f"risk decile        : {result['decile']} / 10 (1 = safest)")
@@ -265,7 +265,7 @@ def evaluate_command(*, artifacts_dir: str, data: str | None) -> int:
         print(f"error: {exc}")
         return 1
 
-    print("LendingClub default — held-out evaluation")
+    print("LendingClub default - held-out evaluation")
     print("=" * 44)
     print(f"held-out n         : {metrics.n}")
     print(f"base rate          : {metrics.base_rate:.4f}")

@@ -3,12 +3,12 @@
 Covers the invariants that matter for an honest, reproducible credit headline:
 
 - metrics are invariant to row permutation (a model's AUC/Brier/log-loss/KS does
-  not depend on row order — the analogue of the "prediction invariance to row
+  not depend on row order - the analogue of the "prediction invariance to row
   permutation" property);
 - ROC-AUC and PR-AUC stay within ``[0, 1]`` and Brier within ``[0, 1]``;
 - the DeLong overfitting guard is sane: identical scores give a zero gap, and the
   Bonferroni ``n_comparisons`` correction monotonically inflates the p-value and
-  is capped at 1.0 (the credit analogue of correcting for a trial grid — the
+  is capped at 1.0 (the credit analogue of correcting for a trial grid - the
   recorded comparison count must be >= 1 and only ever makes the test stricter).
 """
 

@@ -4,7 +4,7 @@ A binary-logistic XGBoost booster with ``scale_pos_weight`` set for the ~15%
 default imbalance and early stopping on a temporal validation fold (a slice of
 the latest train vintages, never the held-out test). The shipped artifact is a
 ``<2MB`` booster JSON trained on the synthetic panel; the API loads it LAZILY at
-first call via a module-level ``_BOOSTER=None`` sentinel — there is NO training
+first call via a module-level ``_BOOSTER=None`` sentinel - there is NO training
 at import or per request.
 
 Importing this module has no side effects (xgboost is imported lazily inside the
@@ -94,7 +94,7 @@ def fit_xgb(
     x_train, y_train:
         The training design matrix and binary target.
     x_valid, y_valid:
-        A *temporal* validation fold (later train vintages) for early stopping —
+        A *temporal* validation fold (later train vintages) for early stopping -
         NEVER the held-out test set.
     config:
         Hyperparameters; defaults to :class:`XGBConfig`.

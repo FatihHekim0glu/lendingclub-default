@@ -5,7 +5,7 @@ threshold, which depends on a business cost matrix (the cost of funding a
 defaulter vs. the opportunity cost of rejecting a good loan). :func:`threshold_sweep`
 reports, across candidate thresholds, the confusion-matrix counts and the
 expected cost, and identifies the cost-minimizing threshold. This is an
-*auxiliary report* — the honest headline stays AUC/PR-AUC/Brier, and NO profit or
+*auxiliary report* - the honest headline stays AUC/PR-AUC/Brier, and NO profit or
 ROI figure is claimed.
 
 Importing this module has no side effects.
@@ -118,7 +118,7 @@ def threshold_sweep(
     A loan is *rejected* (predicted positive / default) when ``y_prob >= t``. The
     expected cost at ``t`` is the mean over rows of the cost-matrix entry implied
     by the (label, decision) pair; the reported ``best_threshold`` is the smallest
-    cost-minimizing threshold. NO profit/ROI figure is derived — costs are in
+    cost-minimizing threshold. NO profit/ROI figure is derived - costs are in
     relative units.
 
     Raises

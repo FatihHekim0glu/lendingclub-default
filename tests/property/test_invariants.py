@@ -3,11 +3,11 @@
 The headline invariants the brief mandates, asserted against the real
 implementations:
 
-(a) **No leakage column survives any pipeline** — running the *full* feature
+(a) **No leakage column survives any pipeline** - running the *full* feature
     pipeline (which begins with ``drop_leakage``) on the synthetic panel AND on a
     perturbed-schema fixture leaves none of ``LEAKAGE_COLS`` in the engineered
     output, and ``assert_no_leakage`` passes on the post-drop frame.
-(c) **The calibrated PD is in ``[0, 1]`` and monotone in the raw score** — a
+(c) **The calibrated PD is in ``[0, 1]`` and monotone in the raw score** - a
     Hypothesis sweep over random isotonic knots and random raw-score vectors.
 
 Invariants (b) prediction permutation-invariance and (d) later-vintage rows
@@ -59,8 +59,8 @@ def test_no_leakage_column_survives_the_pipeline(
     """Invariant (a): no leakage column survives the full feature pipeline.
 
     After ``drop_leakage`` + the fitted feature pipeline, none of the injected
-    post-funding columns remain — neither as a surviving raw column nor as an
-    engineered output feature name — and ``assert_no_leakage`` accepts the frame.
+    post-funding columns remain - neither as a surviving raw column nor as an
+    engineered output feature name - and ``assert_no_leakage`` accepts the frame.
     """
     clean, out_names = _fit_pipeline_columns(synthetic_panel)
 

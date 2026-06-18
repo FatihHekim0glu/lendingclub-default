@@ -42,7 +42,7 @@ def _skip_if_upstream_stubbed(fn: Callable[[], object]) -> object:
     """Run ``fn``; skip the test if an upstream kernel is still a stub.
 
     Keeps the suite green while sibling groups fill in the model/calibration
-    kernels the orchestrator depends on — the real assertions activate the moment
+    kernels the orchestrator depends on - the real assertions activate the moment
     every stub is implemented.
     """
     try:

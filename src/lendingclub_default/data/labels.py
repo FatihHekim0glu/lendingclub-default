@@ -2,14 +2,14 @@
 
 The binary target is built from ``loan_status``:
 
-- positive (1): a *resolved, defaulted* loan — ``loan_status`` in
+- positive (1): a *resolved, defaulted* loan - ``loan_status`` in
   :data:`lendingclub_default._constants.DEFAULT_STATUSES`
   (``Charged Off`` / ``Default``);
-- negative (0): a *resolved, repaid* loan — ``loan_status`` in
+- negative (0): a *resolved, repaid* loan - ``loan_status`` in
   :data:`lendingclub_default._constants.PAID_STATUSES` (``Fully Paid``).
 
 In-progress loans (``Current``, ``Late ...``, ``In Grace Period``, ``Issued``)
-have no known outcome and are **excluded** from the labelled set — including them
+have no known outcome and are **excluded** from the labelled set - including them
 would silently bias the base rate and the calibration. This exclusion is the
 documented label-hygiene rule and is unit-tested.
 

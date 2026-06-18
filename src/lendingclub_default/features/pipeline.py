@@ -138,7 +138,7 @@ class OutOfFoldTargetEncoder:
 
     Follows the sklearn ``TargetEncoder`` contract that defeats target leakage:
 
-    - :meth:`fit_transform` returns **out-of-fold** encodings — each row's value
+    - :meth:`fit_transform` returns **out-of-fold** encodings - each row's value
       is computed from the *other* folds only, so a training row never sees its
       own label. This is what the pipeline uses when fitting on the train fold.
     - :meth:`fit` then :meth:`transform` (the inference path, and how the held-
@@ -369,7 +369,7 @@ def out_of_fold_target_encode(
     """Out-of-fold target encoding for high-cardinality categoricals.
 
     Each row's encoding for a column is the mean target over the *other* folds,
-    so a row never sees its own label — the standard guard against target-
+    so a row never sees its own label - the standard guard against target-
     encoding leakage. Smoothed toward the global base rate for rare categories.
 
     Parameters

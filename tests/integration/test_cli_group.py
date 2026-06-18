@@ -66,7 +66,7 @@ def test_train_score_evaluate_roundtrip(tmp_path: Path) -> None:
     """train -> score -> evaluate runs end-to-end and yields an honest, sane PD.
 
     Trains on the synthetic generator, scores the built-in demo application from
-    the written bundle, and evaluates a fresh synthetic panel — asserting the
+    the written bundle, and evaluates a fresh synthetic panel - asserting the
     artifacts land on disk and the metrics sit in the documented honest band.
     """
     out_dir = tmp_path / "artifacts"
