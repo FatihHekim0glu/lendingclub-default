@@ -47,9 +47,8 @@ CI runs the full matrix on Python 3.11, 3.12, and 3.13.
 ## Commit hygiene
 
 - Use clear, present-tense commit messages.
-- **Do not** add AI-attribution trailers, no `Co-Authored-By: Claude`,
-  no "Generated with Claude", no robot-emoji attribution lines. The
-  `.github/workflows/no-ai-attribution.yml` guard fails any PR that contains them.
+- **Do not** add tooling co-author or generated-with trailers to commit
+  messages.
 
 ## Pull requests
 

@@ -63,7 +63,7 @@ reproducible synthetic-trained `<2MB` artifact.
   temporal-order regression tests, and a CLI round-trip. Coverage gate ≥ 85%.
 - **Docs & governance.** README (honest headline, two limitations, reproduce
   block, validation table), `docs/DESIGN.md` + ADRs 0001 to 0005, `CITATION.cff`,
-  MIT `LICENSE`, and a `no-ai-attribution` CI guard.
+  and the MIT `LICENSE`.
 
 [Unreleased]: https://github.com/FatihHekim0glu/lendingclub-default/compare/v0.1.0...HEAD
 [0.1.0]: https://github.com/FatihHekim0glu/lendingclub-default/releases/tag/v0.1.0
