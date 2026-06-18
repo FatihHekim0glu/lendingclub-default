@@ -31,8 +31,8 @@ anywhere in the headline path.
 
 Two reinforcing rules:
 
-- **Held-out evaluation is the LATEST vintage** — the rows furthest in the future
-  — so the reported metric is the one a deployment would actually see.
+- **Held-out evaluation is the LATEST vintage**, the rows furthest in the future
+ , so the reported metric is the one a deployment would actually see.
 - Early-stopping and calibration slices are themselves carved as *later-vintage
   sub-folds of the train fold* (`_temporal_subsplit`), so even tuning never peeks
   past its own horizon.
@@ -50,7 +50,7 @@ statistics unchanged.
   (ADR-0001 clean panel, `features/pipeline.py`), there is no path for the future
   to influence the fit.
 - **Cost.** Less data for training (the latest vintages are reserved) and higher
-  variance in the estimate than an (invalid) K-fold would show. We accept this —
+  variance in the estimate than an (invalid) K-fold would show. We accept this , 
   a wider honest interval beats a tight dishonest point.
 - **Risk addressed.** "Look-ahead / maturity leakage from random K-fold" is
   eliminated by an asserted, property-tested temporal ordering.

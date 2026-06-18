@@ -10,14 +10,14 @@
 A raw XGBoost margin (or even `predict_proba`) is a good **ranking** score but a
 poor **probability**: boosted trees are systematically over-confident, so the raw
 output is not a number you can call "this loan has a 29% chance of default."
-Because the tool's whole point is to report a **calibrated PD** — and a
-**risk decile** derived from it — the ranking score alone is not enough.
+Because the tool's whole point is to report a **calibrated PD**, and a
+**risk decile** derived from it, the ranking score alone is not enough.
 
 Two standard remedies exist:
 
-- **Platt scaling** — a logistic fit on the score. Cheap, monotone, but assumes a
+- **Platt scaling**, a logistic fit on the score. Cheap, monotone, but assumes a
   sigmoidal miscalibration shape.
-- **Isotonic regression** — a non-parametric monotone fit. More flexible, fits
+- **Isotonic regression**, a non-parametric monotone fit. More flexible, fits
   arbitrary monotone miscalibration, needs a bit more data and can overfit small
   folds.
 
@@ -28,12 +28,12 @@ fit on the test fold would leak.
 
 `models/calibrate.py` wraps the fitted classifier with a **calibration map
 (isotonic by default, Platt available)** fit on a **later-vintage calibration
-slice of the train fold** — never the held-out test vintage (ADR-0002). The
+slice of the train fold**, never the held-out test vintage (ADR-0002). The
 output PD is what the tool reports and what the risk decile is computed from.
 
 Two properties are guaranteed and tested:
 
-- the map is **monotone** (it never reorders risk — a higher raw score never maps
+- the map is **monotone** (it never reorders risk, a higher raw score never maps
   to a lower PD); and
 - the output lies in **`[0, 1]`**.
 
@@ -44,7 +44,7 @@ and a parity test checks the calibrated Brier against
 
 The headline keeps **Brier and log-loss** next to AUC precisely so calibration
 quality is visible: AUC measures ranking, Brier measures whether the PD is
-honest. The committed synthetic artifact reports Brier 0.126 — a sane probability
+honest. The committed synthetic artifact reports Brier 0.126, a sane probability
 score over a ~16% base rate, not a degenerate one.
 
 ## Consequences

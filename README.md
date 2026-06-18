@@ -7,26 +7,26 @@ never random K-fold) against a base-rate predictor and an L2-logistic baseline,
 with a **DeLong** test on the AUC gap.
 
 > **It ranks risk; it does not predict which individuals default.** The headline
-> is **ROC-AUC / PR-AUC / Brier** — never accuracy, never profit/ROI.
+> is **ROC-AUC / PR-AUC / Brier**, never accuracy, never profit/ROI.
 
 ## Honest headline
 
 On the **synthetic** held-out latest vintage, the shipped calibrated XGBoost
 ranks default risk at **ROC-AUC 0.708**, **PR-AUC 0.274**, and **Brier 0.126**
 over a **~16% base rate** (KS 0.331, log-loss 0.414). It beats the **0.500**
-base-rate floor and **ties** the L2-logistic baseline (logistic ROC-AUC 0.714) —
-the **DeLong** test on the AUC gap returns **p = 0.84** (not significant after
+base-rate floor and **ties** the L2-logistic baseline (logistic ROC-AUC 0.714).
+The **DeLong** test on the AUC gap returns **p = 0.84** (not significant after
 Bonferroni over the 9-config grid). **No profit is claimed.**
 
 > These are the numbers the committed `<2MB` artifact **actually achieves on the
-> synthetic panel** — not a real-data result dressed up. On the real Kaggle
+> synthetic panel**, not a real-data result dressed up. On the real Kaggle
 > accepted-loans dump the **expected** figure from the literature and plan is
-> **ROC-AUC ~0.70 / PR-AUC ~0.30–0.40**; that number is *cited as expected*, not
+> **ROC-AUC ~0.70 / PR-AUC ~0.30 to 0.40**; that number is *cited as expected*, not
 > measured here.
 
 The **shipped demo model is trained on a synthetic LC-schema panel** so the tool
 is reproducible without the proprietary Kaggle dump. Real-data numbers require
-the Kaggle accepted-loans CSV — same leakage allowlist, temporal split, and
+the Kaggle accepted-loans CSV. The same leakage allowlist, temporal split, and
 calibration path run on both:
 
 ```bash
@@ -36,12 +36,12 @@ lendingclub-default train --data accepted.csv
 | Metric          | Synthetic (measured, this artifact) | Real Kaggle (expected, cited) |
 | --------------- | ----------------------------------- | ----------------------------- |
 | ROC-AUC (XGB)   | **0.708**                           | ~0.70                         |
-| PR-AUC (XGB)    | **0.274**                           | ~0.30–0.40                    |
-| Brier (XGB)     | **0.126**                           | —                             |
-| KS (XGB)        | **0.331**                           | —                             |
+| PR-AUC (XGB)    | **0.274**                           | ~0.30 to 0.40                 |
+| Brier (XGB)     | **0.126**                           | n/a                           |
+| KS (XGB)        | **0.331**                           | n/a                           |
 | Base rate       | **~16%**                            | ~15%                          |
 | Base-rate AUC   | **0.500** (floor)                   | 0.500                         |
-| Logistic ROC-AUC| 0.714 (ties XGB, DeLong p=0.84)     | —                             |
+| Logistic ROC-AUC| 0.714 (ties XGB, DeLong p=0.84)     | n/a                           |
 
 ## Limitations (state these up front)
 
@@ -51,7 +51,7 @@ lendingclub-default train --data accepted.csv
    all applicants.
 2. **`int_rate` / `grade` are partly circular.** Interest rate and credit grade
    are LendingClub's *own* risk model's outputs, baked into the application data.
-   Their high feature importance is therefore partly tautological — the model is
+   Their high feature importance is therefore partly tautological: the model is
    in part re-learning LendingClub's pricing.
 
 ## Install
@@ -74,7 +74,7 @@ to keep the container lean and import-pure.
 
 ## Reproduce
 
-Everything below is **seeded and deterministic** — same seed yields byte-identical
+Everything below is **seeded and deterministic**: the same seed yields byte-identical
 artifacts, metrics, and figures.
 
 ```bash
@@ -135,7 +135,7 @@ labels = lcd.build_labels(panel)                # exclude in-progress loans
 
 `train` emits a `<2MB` booster JSON + fitted pipeline + calibration map; the
 shipped tool loads it **lazily** via `load_booster()` (a module-level
-`_BOOSTER=None` sentinel — no training at import or per request) and scores one
+`_BOOSTER=None` sentinel, no training at import or per request) and scores one
 application through `score_one`:
 
 ```python
@@ -161,7 +161,7 @@ the logistic coefficients (SHAP is dev-only and never enters the image).
 
 > **The shipped demo model is synthetic-trained.** The committed artifact under
 > `src/lendingclub_default/artifacts/` was trained by `train()` on the synthetic
-> LC-schema generator — not on real LendingClub loans. It exists so the hosted
+> LC-schema generator, not on real LendingClub loans. It exists so the hosted
 > tool runs reproducibly without the proprietary Kaggle dump. Treat the
 > synthetic metrics above as a demonstration of the pipeline's behaviour, and the
 > ~0.70 real-data figure as the literature-cited expectation, not a claim about
@@ -181,12 +181,12 @@ the logistic coefficients (SHAP is dev-only and never enters the image).
 - **Calibrated PD.** An isotonic/Platt map turns the booster's ranking score into
   a usable probability in `[0, 1]` (property-tested: in `[0, 1]` and monotone).
 - **Overfitting guard.** Repeated nested CV with a recorded `n_trials`, plus a
-  **DeLong** AUC-difference test (XGB vs logistic) with Bonferroni correction —
+  **DeLong** AUC-difference test (XGB vs logistic) with Bonferroni correction,
   the credit analogue of a deflated performance statistic.
 
 ## Design & decisions
 
-- [`docs/DESIGN.md`](docs/DESIGN.md) — layering, data flow, invariants, testing.
+- [`docs/DESIGN.md`](docs/DESIGN.md): layering, data flow, invariants, testing.
 - ADRs in [`docs/decisions/`](docs/decisions/):
   [0001 leakage allowlist](docs/decisions/0001-leakage-allowlist.md) ·
   [0002 temporal vintage split](docs/decisions/0002-temporal-vintage-split.md) ·
@@ -196,7 +196,7 @@ the logistic coefficients (SHAP is dev-only and never enters the image).
 
 ## References
 
-- LendingClub data dictionary (`LCDataDictionary`) — the source of the
+- LendingClub data dictionary (`LCDataDictionary`): the source of the
   post-funding leakage column list.
 - E. R. DeLong, D. M. DeLong, D. L. Clarke-Pearson (1988), "Comparing the Areas
   under Two or More Correlated Receiver Operating Characteristic Curves: A
@@ -206,4 +206,4 @@ See [`CITATION.cff`](CITATION.cff) to cite this software.
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+MIT, see [LICENSE](LICENSE).

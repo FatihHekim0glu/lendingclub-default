@@ -12,7 +12,7 @@ credentials.** The proprietary accepted-loans dump cannot be committed to a publ
 repo regardless. Yet the hosted tool must run reproducibly out of the box, and a
 benchmark with no shippable artifact is not a benchmark.
 
-The tempting dishonest move is to *report a real-data AUC as if measured* — to
+The tempting dishonest move is to *report a real-data AUC as if measured*, to
 quote ~0.70 in the README and ship an artifact that nobody can reproduce, blurring
 the line between "what this model achieved" and "what the literature expects." The
 whole project's credibility rests on not doing that.
@@ -29,17 +29,17 @@ Ship a **synthetic-trained** artifact and label it as such everywhere.
   columns, a `loan_status`, **and** the post-funding leakage columns (so the
   allowlist of ADR-0001 is genuinely exercised). Default probability is a noisy
   **monotone** function of fico/dti/int_rate/grade, base rate ~15%, `issue_d`
-  spread across 2015–2018 vintages with mild regime drift. It is **seeded and
+  spread across 2015 to 2018 vintages with mild regime drift. It is **seeded and
   deterministic** (reuses `_rng.py`).
-- A **leakage-free** model on this panel lands at a *believable* AUC (~0.65–0.72),
-  not 0.5 and not 0.99 — verified by the golden-band regression test.
+- A **leakage-free** model on this panel lands at a *believable* AUC (~0.65 to 0.72),
+  not 0.5 and not 0.99, verified by the golden-band regression test.
 - The committed `<2MB` booster is trained by `train()` on this panel, stamped with
   a `RunManifest` (seed + config hash), under `src/lendingclub_default/artifacts/`.
 - The README, DESIGN, and CLI all state plainly: **the demo model is
   synthetic-trained.** The synthetic metrics are reported as *measured on
   synthetic data*; the ~0.70 real-data figure is reported as the *expected*
   literature/plan number, **not** measured here.
-- The **same** code path — leakage drop, temporal split, calibration — runs on
+- The **same** code path, leakage drop, temporal split, calibration, runs on
   real data via `train --data accepted.csv`. The synthetic generator is a fallback
   for when `--data` is omitted, not a separate, weaker pipeline.
 

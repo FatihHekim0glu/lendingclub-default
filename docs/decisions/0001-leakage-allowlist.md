@@ -19,7 +19,7 @@ leakage**. The raw LC export mixes two fundamentally different kinds of column:
   `delinq_amnt`, ...).
 
 A model that sees even one post-funding column learns the answer from the
-outcome: AUC shoots toward ~0.99, which is not a credit model — it is a
+outcome: AUC shoots toward ~0.99, which is not a credit model, it is a
 data-leakage bug wearing a credit model's clothes. Public notebooks do this
 constantly, often by `df.dropna(axis=1)` or "keep the numeric columns", which
 silently retains payment history.
@@ -30,14 +30,14 @@ schema, a perturbed input) after an early drop.
 
 A second, subtler point belongs here: `int_rate` and `grade` are
 application-time and therefore **kept**, but they are LendingClub's *own* risk
-model's outputs. Their predictive power is partly circular — the model is in
+model's outputs. Their predictive power is partly circular, the model is in
 part re-learning LC's pricing. We keep them (they are genuinely available at
 origination) but disclose the circularity as a headline limitation.
 
 ## Decision
 
-`data/leakage.py` defines a **single frozen `LEAKAGE_COLS` allowlist** — the
-canonical list of every post-funding column from the LC data dictionary — and a
+`data/leakage.py` defines a **single frozen `LEAKAGE_COLS` allowlist**, the
+canonical list of every post-funding column from the LC data dictionary, and a
 `drop_leakage(df)` that removes them **case-insensitively** before any feature is
 built. `assert_no_leakage(df)` raises `LeakageError` listing any survivors.
 
@@ -53,7 +53,7 @@ This is enforced, not assumed, by property tests:
 
 ## Consequences
 
-- **Positive.** The reported AUC (~0.71 synthetic) is *believable* — above the
+- **Positive.** The reported AUC (~0.71 synthetic) is *believable*, above the
   base-rate floor, nowhere near a leakage-grade ~0.99. The golden-band regression
   test locks this in.
 - **Positive.** The allowlist is one reviewed artifact, not scattered `drop`
@@ -61,7 +61,7 @@ This is enforced, not assumed, by property tests:
 - **Positive.** The `int_rate`/`grade` circularity is surfaced honestly rather
   than laundered into a "strong model".
 - **Cost.** We discard genuinely predictive *outcome* signal. That is the entire
-  point — at origination that signal does not exist, so using it is a lie about
+  point, at origination that signal does not exist, so using it is a lie about
   what the model can do.
-- **Risk addressed.** "Post-funding leakage" — the defining failure of this
-  problem — is eliminated by an exact, property-tested, fail-closed allowlist.
+- **Risk addressed.** "Post-funding leakage", the defining failure of this
+  problem, is eliminated by an exact, property-tested, fail-closed allowlist.
